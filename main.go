@@ -11,6 +11,7 @@ import (
 	"github.com/jszwec/csvutil"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/sirupsen/logrus"
 )
 
 type Address struct {
@@ -109,11 +110,18 @@ func DownloadUpd(c echo.Context) error {
 		},
 	}
 
-	filename := "./file/report" + time.Now().Format("2006-01-02") + ".csv"
-	csvFile, err := os.Create(filename)
+	var log = logrus.New()
 
-	if err != nil {
-		log.Println(err)
+	log.Out = os.Stdout
+
+	fileOpen := "./file/report.csv"
+	filename := "./file/report" + time.Now().Format("2006-01-02 14:04:05") + ".csv"
+	csvFile, err := os.Create(fileOpen)
+
+	if err == nil {
+		log.Out = csvFile
+	} else {
+		log.Info(err.Error())
 	}
 
 	defer csvFile.Close()
@@ -127,6 +135,6 @@ func DownloadUpd(c echo.Context) error {
 	if err := w.Error(); err != nil {
 		fmt.Println("error:", err)
 	}
-	return c.Attachment(filename, "tes.csv")
+	return c.Attachment(fileOpen, filename)
 
 }
